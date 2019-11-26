@@ -1,10 +1,12 @@
 # Libraries
+
+install.packages('magrittr')
 library('rvest')
 library('tidyverse')
 library(RCurl) 
 
 countries <- c('NL', 'DE')
-websites <- c('https://www.24kitchen.nl/recepten/zoeken', 'https://www.lecker.de/rezepte')
+websites <- c('https://www.smulweb.nl/recepten?page=', 'https://www.lecker.de/rezepte')
 # rm(list=ls(all=TRUE))
 
 # TODO: This doesn't work very well as there is no way to get country results
@@ -27,10 +29,9 @@ websites <- c('https://www.24kitchen.nl/recepten/zoeken', 'https://www.lecker.de
 # get_first_google_link('ricette')
 
 getRecipes <- function(link) {
-  webpage <- read_html('https://www.smulweb.nl/recepten?page=1')
+  webpage <- read_html(link)
   links <- webpage %>% html_nodes("a") %>% html_attr('href')
-  recipes <- grep('https://www.smulweb.nl/recepten/', links, perl = T, value = T) %>% unique(.)
-  # recipes <- recipes[which(recipes != "/recepten/zoeken")]
+  recipes <- grep('https://www.smulweb.nl/recepten/[0-9]', links, perl = T, value = T) %>% unique(.)
   return(recipes)
 }
 
@@ -39,4 +40,9 @@ bases <- paste0(base, seq(1:9888))
 
 df <- data.frame(page = bases)
 
+df$recipes <- apply(df$page, 1, getRecipes)
+
+#TODO: now apply
+getRecipes(df$page[1])
+df$page <- as.character(df$page)
 

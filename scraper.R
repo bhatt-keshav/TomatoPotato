@@ -35,12 +35,8 @@ getRecipes <- function(link) {
 }
 
 base <-  "https://www.smulweb.nl/recepten?page="
-df <- data.frame(page = character(0), recipes = character(0))
-bases <- rep(base, times = 9888)
+bases <- paste0(base, seq(1:9888))
 
-# TODO this in a R way
-for (i in 1:5) {
-  link <- paste0(base, i)
-  getRecipes(link)
-}
+df <- data.frame(page = bases)
+
 

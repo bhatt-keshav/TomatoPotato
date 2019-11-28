@@ -1,9 +1,7 @@
-# Libraries
-
-# install.packages('magrittr')
+## Libraries
 library('rvest')
 library('tidyverse')
-library(RCurl) 
+# library('RCurl') 
 
 # TODO: Maybe this can be made automatic
 # countries <- c('NL', 'DE')
@@ -29,6 +27,7 @@ library(RCurl)
 # 
 # get_first_google_link('ricette')
 
+## Functions
 getRecipes <- function(link) {
   webpage <- read_html(link)
   links <- webpage %>% html_nodes("a") %>% html_attr('href')
@@ -36,30 +35,42 @@ getRecipes <- function(link) {
   return(recipes)
 }
 
+getIngredients <- function(link) {
+  webpage <- read_html(link)
+  ingredients <- webpage %>% html_nodes('div.ingredienten>p') %>% html_text()
+  ingredients <- paste(ingredients, collapse = ' ')
+  return(ingredients)
+}
+
+################
+
 base <-  "https://www.smulweb.nl/recepten?page="
-# Because I saw there are a total of 9888 pages on this website
-# bases <- paste0(base, seq(1:9888))
-# It is wiser to do with 2 pages for now, 9888 takes too long, must do it on a VM
+
+# It is wiser to do with 2 pages for now, 9888 takes too long
 # Each page has 40 odd results, so it is 80 in total now
+# TODO: Change seq(1:2) to 1:9888 and then do it on a VM
 bases <- paste0(base, seq(1:2))
 page <- lapply(bases, getRecipes) 
 page <- unlist(page)
 
 df <- data.frame(page = page)
+df$page <- as.character(df$page)
+
+# TODO: Solve the error  Error in open.connection(x, "rb") : Maximum (10) redirects followed 
+df$ingredients <- lapply(df$page, getIngredients) 
+# PILOTS
 a <- "https://www.smulweb.nl/recepten/126611/Lasagna"
-aHtml <- read_html(a)
-aHtml %>% html_nodes('div.ingredienten') %>% html_nodes('p') 
+aIngredients <- getIngredients(a)
+
 
 b <- "https://www.smulweb.nl/recepten/1475125/Broccoli-stamppot-met-hete-kip"
-bHtml <- read_html(b)
-bHtml %>% html_nodes('div.ingredienten') %>% html_nodes('p') 
+bIngredients <- getIngredients(b)
 
-# TODO: Read this
-https://unstats.un.org/bigdata/taskteams/scannerdata/workshops/Presentation_webscraping_Bogota_Statistics%20Belgium.pdf
-# and foloow this
-https://twitter.com/eu_ntts
+# TODO: Get recipe name
+grep('[0-9]/(.*)', b, perl = T, value = T)
 
-df$page <- as.character(df$page)
+
+
 df$recipe <- lapply(df$page, getRecipes) 
 
 
@@ -67,5 +78,4 @@ df$recipe <- lapply(df$page, getRecipes)
 #TODO: now apply
 df$recipes <- apply(df$page, 1, getRecipes)
 getRecipes(df$page[1])
-
 

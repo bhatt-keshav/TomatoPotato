@@ -1,12 +1,13 @@
 # Libraries
 
-install.packages('magrittr')
+# install.packages('magrittr')
 library('rvest')
 library('tidyverse')
 library(RCurl) 
 
-countries <- c('NL', 'DE')
-websites <- c('https://www.smulweb.nl/recepten?page=', 'https://www.lecker.de/rezepte')
+# TODO: Maybe this can be made automatic
+# countries <- c('NL', 'DE')
+# websites <- c('https://www.smulweb.nl/recepten?page=', 'https://www.lecker.de/rezepte')
 # rm(list=ls(all=TRUE))
 
 # TODO: This doesn't work very well as there is no way to get country results
@@ -36,13 +37,35 @@ getRecipes <- function(link) {
 }
 
 base <-  "https://www.smulweb.nl/recepten?page="
-bases <- paste0(base, seq(1:9888))
+# Because I saw there are a total of 9888 pages on this website
+# bases <- paste0(base, seq(1:9888))
+# It is wiser to do with 2 pages for now, 9888 takes too long, must do it on a VM
+# Each page has 40 odd results, so it is 80 in total now
+bases <- paste0(base, seq(1:2))
+page <- lapply(bases, getRecipes) 
+page <- unlist(page)
 
-df <- data.frame(page = bases)
+df <- data.frame(page = page)
+a <- "https://www.smulweb.nl/recepten/126611/Lasagna"
+aHtml <- read_html(a)
+aHtml %>% html_nodes('div.ingredienten') %>% html_nodes('p') 
 
-df$recipes <- apply(df$page, 1, getRecipes)
+b <- "https://www.smulweb.nl/recepten/1475125/Broccoli-stamppot-met-hete-kip"
+bHtml <- read_html(b)
+bHtml %>% html_nodes('div.ingredienten') %>% html_nodes('p') 
+
+# TODO: Read this
+https://unstats.un.org/bigdata/taskteams/scannerdata/workshops/Presentation_webscraping_Bogota_Statistics%20Belgium.pdf
+# and foloow this
+https://twitter.com/eu_ntts
+
+df$page <- as.character(df$page)
+df$recipe <- lapply(df$page, getRecipes) 
+
+
 
 #TODO: now apply
+df$recipes <- apply(df$page, 1, getRecipes)
 getRecipes(df$page[1])
-df$page <- as.character(df$page)
+
 

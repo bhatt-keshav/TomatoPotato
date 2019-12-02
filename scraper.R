@@ -1,6 +1,7 @@
 ## Libraries
 library('rvest')
 library('tidyverse')
+library('tm')
 # library('RCurl') 
 
 # TODO: Maybe this can be made automatic
@@ -35,10 +36,19 @@ getRecipes <- function(link) {
   return(recipes)
 }
 
+pauseFetching <- function(secs){
+  Sys.sleep(secs) #pause to let connection work
+  closeAllConnections()
+  gc()
+}
+
 getIngredients <- function(link) {
   webpage <- read_html(link)
   ingredients <- webpage %>% html_nodes('div.ingredienten>p') %>% html_text()
   ingredients <- paste(ingredients, collapse = ' ')
+  ingredients <- str_replace_all(ingredients, "[\r\n]" , " ") %>% str_replace_all(., '[0-9]+', "")
+  ingredients <- str_extract_all(ingredients, "[a-zA-Z]+")
+  pauseFetching(1)
   return(ingredients)
 }
 
@@ -56,26 +66,25 @@ page <- unlist(page)
 df <- data.frame(page = page)
 df$page <- as.character(df$page)
 
-# TODO: Solve the error  Error in open.connection(x, "rb") : Maximum (10) redirects followed 
-df$ingredients <- lapply(df$page, getIngredients) 
-# PILOTS
+# get name of the recipe
+df$recipe <- str_extract(df$page, '[^/]+$') %>% str_replace_all(., '-', ' ')
+
+# created a test instance of the top 5 rows, because there is a sleep command
+# till this is not migrated to a VM, do like this
+dfTest <- head(df)
+
+# these are the ingredients of the recipes 
+dfTest$ingredients <- sapply(dfTest$page, getIngredients)
+
+# TODO: Get most common words and remove these stoppy words
+wordCounts <- table(unlist(dfTest$ingredients))
+sort(wordCounts)
+
+# TEST and PLAY!
 a <- "https://www.smulweb.nl/recepten/126611/Lasagna"
 aIngredients <- getIngredients(a)
 
-
-b <- "https://www.smulweb.nl/recepten/1475125/Broccoli-stamppot-met-hete-kip"
-bIngredients <- getIngredients(b)
-
-# TODO: Get recipe name
-grep('[0-9]/(.*)', b, perl = T, value = T)
+link <- 'https://www.smulweb.nl/recepten/1319129/Pittige-kipfilet-a-la-pizzaiola'
 
 
-
-df$recipe <- lapply(df$page, getRecipes) 
-
-
-
-#TODO: now apply
-df$recipes <- apply(df$page, 1, getRecipes)
-getRecipes(df$page[1])
 

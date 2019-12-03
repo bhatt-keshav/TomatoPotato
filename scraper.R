@@ -1,7 +1,9 @@
-## Libraries
+### Libraries
 library('rvest')
 library('tidyverse')
 library('tm')
+# install.packages('qdap')
+library('qdap')
 # library('RCurl') 
 
 # TODO: Maybe this can be made automatic
@@ -28,18 +30,18 @@ library('tm')
 # 
 # get_first_google_link('ricette')
 
-## Functions
+### Functions
+pauseFetching <- function(secs){
+  Sys.sleep(secs) #pause to let connection work
+  closeAllConnections()
+  gc()
+}
+
 getRecipes <- function(link) {
   webpage <- read_html(link)
   links <- webpage %>% html_nodes("a") %>% html_attr('href')
   recipes <- grep('https://www.smulweb.nl/recepten/[0-9]', links, perl = T, value = T) %>% unique(.)
   return(recipes)
-}
-
-pauseFetching <- function(secs){
-  Sys.sleep(secs) #pause to let connection work
-  closeAllConnections()
-  gc()
 }
 
 getIngredients <- function(link) {
@@ -48,11 +50,28 @@ getIngredients <- function(link) {
   ingredients <- paste(ingredients, collapse = ' ')
   ingredients <- str_replace_all(ingredients, "[\r\n]" , " ") %>% str_replace_all(., '[0-9]+', "")
   ingredients <- str_extract_all(ingredients, "[a-zA-Z]+")
-  pauseFetching(1)
+  pauseFetching(3)
   return(ingredients)
 }
 
-################
+getsIngredientsAndErrors <- function(url) {
+  out <- tryCatch(
+    {
+      getIngredients(url)
+    },
+    error=function(cond) {
+      message(paste("URL does not seem to exist:", url))
+      return(NA)
+    },
+    warning=function(cond) {
+      message(paste("URL caused a warning:", url))
+      return(NULL)
+    }
+  )    
+  return(out)
+}
+
+###############################
 
 base <-  "https://www.smulweb.nl/recepten?page="
 
@@ -71,20 +90,35 @@ df$recipe <- str_extract(df$page, '[^/]+$') %>% str_replace_all(., '-', ' ')
 
 # created a test instance of the top 5 rows, because there is a sleep command
 # till this is not migrated to a VM, do like this
-dfTest <- head(df)
+# dfTest <- head(df, 30)
 
 # these are the ingredients of the recipes 
-dfTest$ingredients <- sapply(dfTest$page, getIngredients)
+df$ingredients <- sapply(df$page, getsIngredientsAndErrors)
+df$ingredients <- sapply(df$ingredients, tolower)
 
-# TODO: Get most common words and remove these stoppy words
-wordCounts <- table(unlist(dfTest$ingredients))
-sort(wordCounts)
+# These are the most common words and should remove these stoppy words
+ingrdCounts <- freq_terms(unlist(df$ingredients), 30)
 
-# TEST and PLAY!
+# HERE!
+ic <- freq_terms(unlist(df$ingredients), 3000)
+
+ic[ic$WORD == "aardappelen", ]
+ic[ic$WORD == "tomaten", ]
+
+ic[order(ic$WORD), ] %>% head(20)
+
+###### TEST and PLAY! #####
 a <- "https://www.smulweb.nl/recepten/126611/Lasagna"
-aIngredients <- getIngredients(a)
+getIngredients(a)
 
-link <- 'https://www.smulweb.nl/recepten/1319129/Pittige-kipfilet-a-la-pizzaiola'
+bad <- 'https://www.smulweb.nl/avfd'
+getIngredients(bad)
+
+urls <- c(a, bad)
+
+y <- sapply(urls, readUrl)
+y
+
 
 
 

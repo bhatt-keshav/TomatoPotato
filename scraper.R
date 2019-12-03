@@ -44,14 +44,23 @@ getRecipes <- function(link) {
   return(recipes)
 }
 
-getIngredients <- function(link) {
-  webpage <- read_html(link)
-  ingredients <- webpage %>% html_nodes('div.ingredienten>p') %>% html_text()
-  ingredients <- paste(ingredients, collapse = ' ')
-  ingredients <- str_replace_all(ingredients, "[\r\n]" , " ") %>% str_replace_all(., '[0-9]+', "")
-  ingredients <- str_extract_all(ingredients, "[a-zA-Z]+")
-  pauseFetching(3)
-  return(ingredients)
+getRecipesAndErrors <- function(link) {
+  recipes <- tryCatch(
+    {
+      webpage <- read_html(link)
+      links <- webpage %>% html_nodes("a") %>% html_attr('href')
+      recipes <- grep('https://www.smulweb.nl/recepten/[0-9]', links, perl = T, value = T) %>% unique(.)
+    },
+    error=function(cond) {
+      message(paste("URL does not seem to exist:", url))
+      return(NA)
+    },
+    warning=function(cond) {
+      message(paste("URL caused a warning:", url))
+      return(NULL)
+    }
+  )
+  return(recipes)
 }
 
 getsIngredientsAndErrors <- function(url) {
@@ -79,7 +88,7 @@ base <-  "https://www.smulweb.nl/recepten?page="
 # Each page has 40 odd results, so it is 80 in total now
 # TODO: Change seq(1:2) to 1:9888 and then do it on a VM
 bases <- paste0(base, seq(1:2))
-page <- lapply(bases, getRecipes) 
+page <- lapply(bases, getRecipesAndErrors) 
 page <- unlist(page)
 
 df <- data.frame(page = page)

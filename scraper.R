@@ -2,8 +2,7 @@
 library('rvest')
 library('tidyverse')
 library('tm')
-# install.packages('qdap')
-library('qdap')
+# library('qdap')
 # library('RCurl') 
 
 # TODO: Maybe this can be made automatic
@@ -42,14 +41,23 @@ getRecipes <- function(link) {
   links <- webpage %>% html_nodes("a") %>% html_attr('href')
   recipes <- grep('https://www.smulweb.nl/recepten/[0-9]', links, perl = T, value = T) %>% unique(.)
   return(recipes)
+  pauseFetching(2)
 }
 
-getRecipesAndErrors <- function(link) {
+getIngredients <- function(link) {
+  webpage <- read_html(link)
+  ingredients <- webpage %>% html_nodes('div.ingredienten>p') %>% html_text()
+  ingredients <- paste(ingredients, collapse = ' ')
+  ingredients <- str_replace_all(ingredients, "[\r\n]" , " ") %>% str_replace_all(., '[0-9]+', "")
+  ingredients <- str_extract_all(ingredients, "[a-zA-Z]+")
+  pauseFetching(3)
+  return(ingredients)
+}
+
+getRecipesAndErrors <- function(url) {
   recipes <- tryCatch(
     {
-      webpage <- read_html(link)
-      links <- webpage %>% html_nodes("a") %>% html_attr('href')
-      recipes <- grep('https://www.smulweb.nl/recepten/[0-9]', links, perl = T, value = T) %>% unique(.)
+      getRecipes(url)
     },
     error=function(cond) {
       message(paste("URL does not seem to exist:", url))
@@ -86,10 +94,22 @@ base <-  "https://www.smulweb.nl/recepten?page="
 
 # It is wiser to do with 2 pages for now, 9888 takes too long
 # Each page has 40 odd results, so it is 80 in total now
-# TODO: Change seq(1:2) to 1:9888 and then do it on a VM
-bases <- paste0(base, seq(1:2))
-page <- lapply(bases, getRecipesAndErrors) 
-page <- unlist(page)
+
+page <- character()
+for (i in seq(1, 9888)) {
+  print(i)
+  atPage <- paste0(base, i)
+  page[i] <- lapply(atPage, getRecipesAndErrors)
+}
+# contains results from pg 1 - 100
+page0
+# TODO: Join this with page 
+
+
+
+test <- 'https://www.smulweb.nl/recepten?page=48'
+
+lapply(test, getRecipesAndErrors) 
 
 df <- data.frame(page = page)
 df$page <- as.character(df$page)

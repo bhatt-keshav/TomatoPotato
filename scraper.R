@@ -2,7 +2,7 @@
 library('rvest')
 library('tidyverse')
 library('tm')
-# library('qdap')
+library('qdap')
 # library('RCurl') 
 
 # TODO: Maybe this can be made automatic
@@ -50,7 +50,7 @@ getIngredients <- function(link) {
   ingredients <- paste(ingredients, collapse = ' ')
   ingredients <- str_replace_all(ingredients, "[\r\n]" , " ") %>% str_replace_all(., '[0-9]+', "")
   ingredients <- str_extract_all(ingredients, "[a-zA-Z]+")
-  pauseFetching(3)
+  pauseFetching(2)
   return(ingredients)
 }
 
@@ -71,7 +71,7 @@ getRecipesAndErrors <- function(url) {
   return(recipes)
 }
 
-getsIngredientsAndErrors <- function(url) {
+getIngredientsAndErrors <- function(url) {
   out <- tryCatch(
     {
       getIngredients(url)
@@ -102,17 +102,32 @@ for (i in seq(1, 9888)) {
   page[i] <- lapply(atPage, getRecipesAndErrors)
 }
 # contains results from pg 1 - 100
-page0
-# TODO: Join this with page 
 
+# These pages have been retreived
+page0 <- readRDS('page.rds')
+page <- readRDS('page.rds')
+pages <- c(page, page0)
+pages <- unlist(pages)
+pages <- unique(pages) #346780
 
+# Ingredients of the recipes from these pages
+# TODO: Put this on a VM, for now I have ingredients from 5025 recipes
 
-test <- 'https://www.smulweb.nl/recepten?page=48'
+ingredients <- character()
+c <- 0
+for (p in pages) {
+  ingredients[p] <- sapply(p, getIngredientsAndErrors)
+  c <- c + 1
+  print(c)
+}
 
-lapply(test, getRecipesAndErrors) 
+saveRDS(ingredients, 'ingredients.rds')
+# TODO: Is a df even necessary?
 
 df <- data.frame(page = page)
 df$page <- as.character(df$page)
+
+# TODO: Get tags e.g. engels, indo...
 
 # get name of the recipe
 df$recipe <- str_extract(df$page, '[^/]+$') %>% str_replace_all(., '-', ' ')
@@ -127,6 +142,7 @@ df$ingredients <- sapply(df$ingredients, tolower)
 
 # These are the most common words and should remove these stoppy words
 ingrdCounts <- freq_terms(unlist(df$ingredients), 30)
+ingrdCounts <- freq_terms(unlist(ingredients,  use.names = F), 30)
 
 # HERE!
 ic <- freq_terms(unlist(df$ingredients), 3000)

@@ -1,35 +1,19 @@
-### Libraries
+### Setup
+## Libraries
 library('rvest')
 library('tidyverse')
 library('tm')
 library('qdap')
 # library('RCurl') 
+## Directory
+setwd('/home/kiki/TomatoPotato')
 
-# TODO: Maybe this can be made automatic
-# countries <- c('NL', 'DE')
-# websites <- c('https://www.smulweb.nl/recepten?page=', 'https://www.lecker.de/rezepte')
+# TODO: Scrape from Italy also
+# countries <- c('NL', 'IT')
+# websites <- c('https://www.smulweb.nl/recepten?page=', 'www.giallozafferano.it')
 # rm(list=ls(all=TRUE))
 
-# TODO: This doesn't work very well as there is no way to get country results
-# for now do manually
-# get_first_google_link <- function(name, root = TRUE) {
-#   url = URLencode(paste0("https://www.google.com/search?q=",name))
-#   page <- xml2::read_html(url)
-#   # extract all links
-#   nodes <- rvest::html_nodes(page, "a")
-#   links <- rvest::html_attr(nodes,"href")
-#   # extract first link of the search results
-#   link <- links[startsWith(links, "/url?q=")][1]
-#   # clean it
-#   link <- sub("^/url\\?q\\=(.*?)\\&sa.*$","\\1", link)
-#   # get root if relevant
-#   if(root) link <- sub("^(https?://.*?/).*$", "\\1", link)
-#   link
-# }
-# 
-# get_first_google_link('ricette')
-
-### Functions
+### Functions ###
 pauseFetching <- function(secs){
   Sys.sleep(secs) #pause to let connection work
   closeAllConnections()
@@ -88,31 +72,30 @@ getIngredientsAndErrors <- function(url) {
   return(out)
 }
 
-###############################
+### Script ###
 
+### Scraping
 base <-  "https://www.smulweb.nl/recepten?page="
-
-# It is wiser to do with 2 pages for now, 9888 takes too long
-# Each page has 40 odd results, so it is 80 in total now
-
+## Retreive the URLs of all recipes listed per page
 page <- character()
 for (i in seq(1, 9888)) {
   print(i)
   atPage <- paste0(base, i)
   page[i] <- lapply(atPage, getRecipesAndErrors)
 }
-# contains results from pg 1 - 100
-
-# These pages have been retreived
+## These pages have been retreived
 page0 <- readRDS('page.rds')
 page <- readRDS('page.rds')
+# page0 and page do not have their index correct, so it is better to merge and unlist them
+# anyway index is irrelevant
 pages <- c(page, page0)
 pages <- unlist(pages)
-pages <- unique(pages) #346780
+# The total number of recipes now is: 346780, which is almost everything at the date of fetching
+pages <- unique(pages) 
+saveRDS(pages, 'recipeURLs')
 
-# Ingredients of the recipes from these pages
-# TODO: Put this on a VM, for now I have ingredients from 5025 recipes
-
+## Ingredients of the recipes from these pages
+# TODO: Put this on a VM, for now I have ingredients from 5025 recipes out of a total 346780 (1.44%)
 ingredients <- character()
 c <- 0
 for (p in pages) {
@@ -120,8 +103,38 @@ for (p in pages) {
   c <- c + 1
   print(c)
 }
+# saveRDS(ingredients, 'ingredients.rds')
+ingredients <- readRDS('ingredients.rds')
 
-saveRDS(ingredients, 'ingredients.rds')
+### Pre-processing
+## Remove stopwords
+
+## HERE!!!
+# these are the ingredients of the recipes 
+# df$ingredients <- sapply(df$ingredients, tolower)
+
+# These are the most common words and should remove these stop words
+ingrdCounts <- freq_terms(unlist(ingredients), 50, at.least = 3); ingrdCounts
+
+nlStopwords <- c('aan' , 'af' , 'al' , 'als' , 'bij' , 'dan' , 'dat' , 'die' , 'dit' , 'een' , 'en' , 'er' , 'had' , 'heb' , 'hem' , 'het' , 'hij' , 'hoe' , 'hun' , 'ik' , 'is' , 'je' , 'kan' , 'me' , 'men' , 'met' , 'mij' , 'nog' , 'nu' , 'of' , 'ons' , 'ook' , 'te' , 'tot' , 'uit' , 'van' , 'voor', 'was' , 'we' , 'wel' , 'wij' , 'zal' , 'ze' , 'zei' , 'zij' , 'zo' , 'zou' , 'in' , 'wat', 
+                'gr', 'gram', 'zout', 'eetlepels', 'eetl', 'el', 'theelepel', 'eetlepel', 'verse', 'rode', 'grote',                   'gesneden',  'geraspte', 'kleine', 'witte', 'met', 'teentjes', 'plakjes',  'naar',                        'smaak', 'blokjes', 'zakje', 'fijn', 'gedroogde', 'stukjes')
+
+ingredientsClean <- rm_stopwords(ingredients, nlStopwords, strip = TRUE, ignore.case = TRUE, unlist = TRUE)
+
+ingrdCounts1 <- freq_terms(ingredientsClean, 50, at.least = 3); ingrdCounts1
+
+### Analysis
+
+ingredients[1]
+
+ic <- freq_terms(unlist(df$ingredients), 3000)
+
+ic[ic$WORD == "aardappelen", ]
+ic[ic$WORD == "tomaten", ]
+
+ic[order(ic$WORD), ] %>% head(20)
+
+
 # TODO: Is a df even necessary?
 
 df <- data.frame(page = page)
@@ -136,21 +149,6 @@ df$recipe <- str_extract(df$page, '[^/]+$') %>% str_replace_all(., '-', ' ')
 # till this is not migrated to a VM, do like this
 # dfTest <- head(df, 30)
 
-# these are the ingredients of the recipes 
-df$ingredients <- sapply(df$page, getsIngredientsAndErrors)
-df$ingredients <- sapply(df$ingredients, tolower)
-
-# These are the most common words and should remove these stoppy words
-ingrdCounts <- freq_terms(unlist(df$ingredients), 30)
-ingrdCounts <- freq_terms(unlist(ingredients,  use.names = F), 30)
-
-# HERE!
-ic <- freq_terms(unlist(df$ingredients), 3000)
-
-ic[ic$WORD == "aardappelen", ]
-ic[ic$WORD == "tomaten", ]
-
-ic[order(ic$WORD), ] %>% head(20)
 
 ###### TEST and PLAY! #####
 a <- "https://www.smulweb.nl/recepten/126611/Lasagna"

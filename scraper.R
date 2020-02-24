@@ -1,80 +1,13 @@
-### Setup
-## Libraries
-library('rvest')
-library('tidyverse')
-library('tm')
-library('qdap')
-# library('RCurl') 
-## Directory
-setwd('/home/kiki/TomatoPotato')
+### Directory
+# setwd('/home/kiki/TomatoPotato')
+setwd('C:/TomatoPotato')
 
-# TODO: Scrape from Italy also
-# countries <- c('NL', 'IT')
-# websites <- c('https://www.smulweb.nl/recepten?page=', 'www.giallozafferano.it')
-# rm(list=ls(all=TRUE))
+### Load essentials = Libraries and Functions
+source('dependencies.R')
 
-### Functions ###
-pauseFetching <- function(secs){
-  Sys.sleep(secs) #pause to let connection work
-  closeAllConnections()
-  gc()
-}
+### Script
 
-getRecipes <- function(link) {
-  webpage <- read_html(link)
-  links <- webpage %>% html_nodes("a") %>% html_attr('href')
-  recipes <- grep('https://www.smulweb.nl/recepten/[0-9]', links, perl = T, value = T) %>% unique(.)
-  return(recipes)
-  pauseFetching(2)
-}
-
-getIngredients <- function(link) {
-  webpage <- read_html(link)
-  ingredients <- webpage %>% html_nodes('div.ingredienten>p') %>% html_text()
-  ingredients <- paste(ingredients, collapse = ' ')
-  ingredients <- str_replace_all(ingredients, "[\r\n]" , " ") %>% str_replace_all(., '[0-9]+', "")
-  ingredients <- str_extract_all(ingredients, "[a-zA-Z]+")
-  pauseFetching(2)
-  return(ingredients)
-}
-
-getRecipesAndErrors <- function(url) {
-  recipes <- tryCatch(
-    {
-      getRecipes(url)
-    },
-    error=function(cond) {
-      message(paste("URL does not seem to exist:", url))
-      return(NA)
-    },
-    warning=function(cond) {
-      message(paste("URL caused a warning:", url))
-      return(NULL)
-    }
-  )
-  return(recipes)
-}
-
-getIngredientsAndErrors <- function(url) {
-  out <- tryCatch(
-    {
-      getIngredients(url)
-    },
-    error=function(cond) {
-      message(paste("URL does not seem to exist:", url))
-      return(NA)
-    },
-    warning=function(cond) {
-      message(paste("URL caused a warning:", url))
-      return(NULL)
-    }
-  )    
-  return(out)
-}
-
-### Script ###
-
-### Scraping
+## Scraping
 base <-  "https://www.smulweb.nl/recepten?page="
 ## Retreive the URLs of all recipes listed per page
 page <- character()

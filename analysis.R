@@ -1,26 +1,58 @@
-### Analysis
+### Analysis ###
 # Loading the URLs of recipes fetches per page of the website (optional)
 # pages <- readRDS('recipeURLs.rds')
 
 # Loading the fetched ingredients
 ingredients <- readRDS('ingredients.rds')
 
-### Pre-processing
+### Text Pre-processing
+## Cleaning
+# Make all entries lower case, other cleaning such as removing punctuation, nr is not needed as I did that while fetching by keeping only chars
+ingredients <- lapply(ingredients, tolower)
+# total ingredients are: 9135
+unique(unlist(ingredients)) %>% length()
+
 ## Remove stopwords
+# There are many frequently occuring words which should be removed
+ingrdCounts <- freq_terms(unlist(ingredients), top = 100); ingrdCounts
+# Of these 100, by manual inspection, these are also kind of stop-words
+ingrdCommon <-  c("gram", "gr", "of", "g", "en", "el", "in", "de", "eetlepels", "van", "ml", "voor", "een", "dl", "ui", "tl", "rode", "verse", "grote", "eetl", "eetlepel", "theelepel", "gesneden", "witte", "met", "teentjes", "kleine", "geraspte", "plakjes", "te", "naar", "het", "smaak", "zwarte", "blokjes", "gehakt", "om", "t", "cm", "uit", "ei", "gemalen", "zakje", "fijn", "gedroogde", "stukjes", "theel", "blikje", "fijngesneden", "liter", "teentje", "ovenschaal", "op", "flinke", "blik", "pan", "vers", "groene", "klein", "theelepels", "je", "a", "s", "ca", "citroen", "gesnipperd", "tenen", "oven", "versgemalen", "kg", "gehakte")
+# Standard Dutch stop-words
+nlStopwords <- c('aan' , 'af' , 'al' , 'als' , 'bij' , 'dan' , 'dat' , 'die' , 'dit' , 'een' , 'en' , 'er' , 'had' , 'heb' , 'hem' , 'het' , 'hij' , 'hoe' , 'hun' , 'ik' , 'is' , 'je' , 'kan' , 'me' , 'men' , 'met' , 'mij' , 'nog' , 'nu' , 'of' , 'ons' , 'ook' , 'te' , 'tot' , 'uit' , 'van' , 'voor', 'was' , 'we' , 'wel' , 'wij' , 'zal' , 'ze' , 'zei' , 'zij' , 'zo' , 'zou' , 'in' , 'wat')
+ 
+allStopWords <- c(nlStopwords, ingrdCommon)
+allStopWords <- allStopWords %>% unique()
 
-## HERE!!!
-# these are the ingredients of the recipes 
-# df$ingredients <- sapply(df$ingredients, tolower)
-
-# These are the most common words and should remove these stop words
-ingrdCounts <- freq_terms(unlist(ingredients), 50, at.least = 3); ingrdCounts
-
-nlStopwords <- c('aan' , 'af' , 'al' , 'als' , 'bij' , 'dan' , 'dat' , 'die' , 'dit' , 'een' , 'en' , 'er' , 'had' , 'heb' , 'hem' , 'het' , 'hij' , 'hoe' , 'hun' , 'ik' , 'is' , 'je' , 'kan' , 'me' , 'men' , 'met' , 'mij' , 'nog' , 'nu' , 'of' , 'ons' , 'ook' , 'te' , 'tot' , 'uit' , 'van' , 'voor', 'was' , 'we' , 'wel' , 'wij' , 'zal' , 'ze' , 'zei' , 'zij' , 'zo' , 'zou' , 'in' , 'wat', 
-                 'gr', 'gram', 'zout', 'eetlepels', 'eetl', 'el', 'theelepel', 'eetlepel', 'verse', 'rode', 'grote',                   'gesneden',  'geraspte', 'kleine', 'witte', 'met', 'teentjes', 'plakjes',  'naar',                        'smaak', 'blokjes', 'zakje', 'fijn', 'gedroogde', 'stukjes')
-
-ingredientsClean <- rm_stopwords(ingredients, nlStopwords, strip = TRUE, ignore.case = TRUE, unlist = TRUE)
+# HERE!
+ingredientsClean <- rm_stopwords(ingredients, allStopWords, strip = TRUE, ignore.case = TRUE, unlist = TRUE)
 
 ingrdCounts1 <- freq_terms(ingredientsClean, 50, at.least = 3); ingrdCounts1
+
+
+
+
+
+# Convert text to a corpus using tm, it becomes a list of list, with two tags content and meta
+ingredientsSource <- VectorSource(ingredients)
+# A volatile corpus is created (i.e. it's in RAM)
+ingredientsCorpus <- VCorpus(ingredientsSource)
+
+
+
+
+### Preliminary analysis
+
+plot(freq_terms(unlist(ingredients), 3))
+
+
+# Tutorial End
+
+### Pre-processing
+
+
+
+
+# These are the most common words and should remove these stop words
 
 ### Analysis
 

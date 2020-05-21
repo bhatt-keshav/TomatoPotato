@@ -1,6 +1,7 @@
 ## Libraries neeeded 
 library('rvest')
 library('tidyverse')
+library('SnowballC')
 library('tm')
 library('qdap')
 # library('RCurl') 
@@ -62,4 +63,9 @@ getIngredientsAndErrors <- function(url) {
     }
   )    
   return(out)
+}
+
+# This function is like the tm::removeWords 
+removeStopWords <- function(from_vec, stopwords) {
+  setdiff(from_vec, stopwords)
 }

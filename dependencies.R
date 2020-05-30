@@ -4,7 +4,6 @@ library('tidyverse')
 library('SnowballC')
 library('tm')
 library('qdap')
-# library('RCurl') 
 
 ## Functions needed for script to work
 pauseFetching <- function(secs){

@@ -64,7 +64,32 @@ getIngredientsAndErrors <- function(url) {
   return(out)
 }
 
+getRecipeCategory <- function(link) {
+  category <- read_html(link) %>% html_node(".descr_shrt li:nth-child(1)") %>% html_text() %>% str_trim(.)
+  category <- gsub("[^A-Za-z]+", " ", category) %>% tolower() %>%
+    strsplit(., " ")
+  return(category)
+}
+
+getRecipeCategoryAndErrors <- function(url) {
+  out <- tryCatch(
+    {
+      getRecipeCategory(url)
+    },
+    error=function(cond) {
+      message(paste("URL does not seem to exist:", url))
+      return(NA)
+    },
+    warning=function(cond) {
+      message(paste("URL caused a warning:", url))
+      return(NULL)
+    }
+  )    
+  return(out)
+}
+
 # This function is like the tm::removeWords 
 removeStopWords <- function(from_vec, stopwords) {
   setdiff(from_vec, stopwords)
 }
+

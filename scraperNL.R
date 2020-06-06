@@ -61,14 +61,19 @@ getIngredientsPerPage <- function(toggle) {
 # We set the toggle to zero, so as to not run the fetching
 getIngredientsPerPage(toggle=0)
 
+# Fetching recipe categories e.g. indo, hoofdgerecht, spaans...
 recipeCategory <- list()
-c <- 0
-# c(1000, 2000, 3000, 4000, 5025)
-for (r in recipeURLs[1:1000]) {
-  # doing so, creates a named list per URL, which is quite useful
-  recipeCategory[r] <- sapply(r, getRecipeCategoryAndErrors)
-  c <- c + 1
-  print(c)
+
+# tomorrow from here: 07/06/2020
+n <- c(2000, 3000, 4000)
+c <- n[1]
+for (i in n) {
+  j <- i + 999
+  for (r in recipeURLs[i:j]) {
+    # doing so, creates a named list per URL, which is quite useful
+    recipeCategory[r] <- sapply(r, getRecipeCategoryAndErrors)
+    c <- c + 1
+  }  
 }
 
 saveRDS(recipeCategory, 'recipeCategory.rds')

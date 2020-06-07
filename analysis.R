@@ -77,28 +77,35 @@ recipeCategoryDF$WORD[which(recipeCategoryDF$WORD %in% mealType)] <- ""
 recipeCategoryDF$WORD[which(recipeCategoryDF$WORD %in% c("multi", "cultureel"))] <- "multi-cultureel"
 recipeCategoryDF$WORD[which(recipeCategoryDF$WORD %in% c("goedkoop", "en", "snel"))] <- "goedkoop-en-snel"
 recipeCategoryDF$WORD[which(recipeCategoryDF$WORD %in% c("saus", "dressing"))] <- "saus-dressing"
+# Group to remove duplicates and sum them
 recipeCategoryDF <- recipeCategoryDF %>% group_by(WORD) %>% summarise(FREQ=sum(FREQ))
 recipeCategoryDF <- as.data.frame(recipeCategoryDF) 
+# Delete the row which has empty word value
 recipeCategoryDF <- recipeCategoryDF[!(recipeCategoryDF$WORD == ""), ] 
+# Need to make a factor for the plot to work, it doesn't like char 
 recipeCategoryDF$WORD <- as.factor(recipeCategoryDF$WORD)
-# try
-with(recipeCategoryDF,barplot(WORD, FREQ))
-table(recipeCategoryDF$FREQ)
-
-barplot(table(recipeCategoryDF$FREQ), xlab = 'label', horiz = TRUE)
-
-plot(recipeCategoryDF$WORD, recipeCategoryDF$FREQ)
-
-# sort of working
+# order for the plot to look nice
 recipeCategoryDF <- recipeCategoryDF[order(recipeCategoryDF$FREQ),]
-
-
+# make barplot
 barplot(height=recipeCategoryDF$FREQ, names.arg = recipeCategoryDF$WORD, horiz = TRUE, xlab = 'COUNT',
-        las=1, cex.names=0.7, xlim = c(0, 1100),  xaxs='r')
+        las=1, cex.names=0.7, xlim = c(0, 1100), mar = c(3,8,3,3))
 
 
+# Now to see the mealtypes
+mealCategoryDF <- freq_terms(as.vector(unlist(recipeCategory)), top = 100) 
+# keep only meal types from the recipe categories
+mealCategoryDF$WORD[which(mealCategoryDF$WORD %ni% mealType)] <- ""
+# combine lunch en brunch
+mealCategoryDF$WORD[which(mealCategoryDF$WORD %in% c("lunch", "brunch"))] <- "lunch-brunch"
 
-
- # combine lunch en brunch
-recipeCategory[grep('slanke', recipeCategory)] %>% length()
-recipeCategory[grep('keuken', recipeCategory)] %>% length()
+# Group to remove duplicates and sum them
+mealCategoryDF <- mealCategoryDF %>% group_by(WORD) %>% summarise(FREQ=sum(FREQ))
+# Delete the row which has empty word value
+mealCategoryDF <- mealCategoryDF[!(mealCategoryDF$WORD == ""), ] 
+# Need to make a factor for the plot to work, it doesn't like char 
+recipeCategoryDF$WORD <- as.factor(recipeCategoryDF$WORD)
+# order for the plot to look nice
+mealCategoryDF <- mealCategoryDF[order(mealCategoryDF$FREQ),]
+# make barplot
+barplot(height=mealCategoryDF$FREQ, names.arg = mealCategoryDF$WORD, horiz = TRUE, xlab = 'COUNT',
+        las=1, cex.names=0.7, xlim = c(0, 2000), mar = c(3,8,3,3))

@@ -68,6 +68,37 @@ recipeNames <- recipeNames %>% tolower() %>%
 # saveRDS(recipeNames, "recipeNames.rds")
 
 ## Recipe categories
+mealType <- c("borrelhapje", "lunch", "brunch", "hoofdgerecht", "voorgerecht", "feestmaaltijd", "nagerecht", "bijgerecht", "banket", "ontbijt", "tussengerecht", "tussendoortje", "scandinavisch", "buffet", "amuse")
+
+recipeCategoryDF <- freq_terms(as.vector(unlist(recipeCategory)), top = 100) 
+# remove meal types from the recipe categories
+recipeCategoryDF$WORD[which(recipeCategoryDF$WORD %in% mealType)] <- ""
+# group words that are actually same
+recipeCategoryDF$WORD[which(recipeCategoryDF$WORD %in% c("multi", "cultureel"))] <- "multi-cultureel"
+recipeCategoryDF$WORD[which(recipeCategoryDF$WORD %in% c("goedkoop", "en", "snel"))] <- "goedkoop-en-snel"
+recipeCategoryDF$WORD[which(recipeCategoryDF$WORD %in% c("saus", "dressing"))] <- "saus-dressing"
+recipeCategoryDF <- recipeCategoryDF %>% group_by(WORD) %>% summarise(FREQ=sum(FREQ))
+recipeCategoryDF <- as.data.frame(recipeCategoryDF) 
+recipeCategoryDF <- recipeCategoryDF[!(recipeCategoryDF$WORD == ""), ] 
+recipeCategoryDF$WORD <- as.factor(recipeCategoryDF$WORD)
+# try
+with(recipeCategoryDF,barplot(WORD, FREQ))
+table(recipeCategoryDF$FREQ)
+
+barplot(table(recipeCategoryDF$FREQ), xlab = 'label', horiz = TRUE)
+
+plot(recipeCategoryDF$WORD, recipeCategoryDF$FREQ)
+
+# sort of working
+recipeCategoryDF <- recipeCategoryDF[order(recipeCategoryDF$FREQ),]
+
+
+barplot(height=recipeCategoryDF$FREQ, names.arg = recipeCategoryDF$WORD, horiz = TRUE, xlab = 'COUNT',
+        las=1, cex.names=0.7, xlim = c(0, 1100),  xaxs='r')
 
 
 
+
+ # combine lunch en brunch
+recipeCategory[grep('slanke', recipeCategory)] %>% length()
+recipeCategory[grep('keuken', recipeCategory)] %>% length()

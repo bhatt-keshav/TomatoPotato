@@ -6,6 +6,8 @@ library('tm')
 library('qdap')
 
 ## Functions needed for script to work
+'%ni%' <- Negate('%in%')
+
 pauseFetching <- function(secs){
   Sys.sleep(secs) #pause to let connection work
   closeAllConnections()

@@ -63,8 +63,8 @@ getIngredientsPerPage(toggle=0)
 
 # Fetching recipe categories e.g. indo, hoofdgerecht, spaans...
 recipeCategory <- list()
-
-# tomorrow from here: 07/06/2020
+# Step 1 1- 2000 manually
+# Step 2 2000-4999 for loop
 n <- c(2000, 3000, 4000)
 c <- n[1]
 for (i in n) {
@@ -76,6 +76,11 @@ for (i in n) {
   }  
 }
 
+# Step 3 4999-5025 manually
+for (r in recipeURLs[4999:5025]) {
+  # doing so, creates a named list per URL, which is quite useful
+  recipeCategory[r] <- sapply(r, getRecipeCategoryAndErrors)
+}
 saveRDS(recipeCategory, 'recipeCategory.rds')
 
 

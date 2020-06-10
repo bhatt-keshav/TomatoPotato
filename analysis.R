@@ -42,6 +42,8 @@ ingredientsClean[grepl("aardap|kriel|patat|pieper", ingredientsClean)] <- "aarda
 
 # Put all in a df for plotting
 ingredientsDF <- freq_terms(ingredientsClean, top = 100) 
+# make barplot
+# TODO: Chnage y label and add plot label
 plot(ingredientsDF[3 :100, ]) # start from 3 to omit zout en peper
 
 ## TODO: Categorize food, spices
@@ -87,6 +89,7 @@ recipeCategoryDF$WORD <- as.factor(recipeCategoryDF$WORD)
 # order for the plot to look nice
 recipeCategoryDF <- recipeCategoryDF[order(recipeCategoryDF$FREQ),]
 # make barplot
+# TODO: Add y label and add plot label
 barplot(height=recipeCategoryDF$FREQ, names.arg = recipeCategoryDF$WORD, horiz = TRUE, xlab = 'COUNT',
         las=1, cex.names=0.7, xlim = c(0, 1100), mar = c(3,8,3,3))
 
@@ -107,5 +110,6 @@ recipeCategoryDF$WORD <- as.factor(recipeCategoryDF$WORD)
 # order for the plot to look nice
 mealCategoryDF <- mealCategoryDF[order(mealCategoryDF$FREQ),]
 # make barplot
+# TODO: Add y label and add plot label
 barplot(height=mealCategoryDF$FREQ, names.arg = mealCategoryDF$WORD, horiz = TRUE, xlab = 'COUNT',
         las=1, cex.names=0.7, xlim = c(0, 2000), mar = c(3,8,3,3))

@@ -22,6 +22,16 @@ getRecipes <- function(link) {
   pauseFetching(2)
 }
 
+getRecipesIT <- function(link) {
+  webpage <- read_html(link)
+  recipeLinks <- webpage %>% html_nodes(".gz-title a") %>% html_attr("href")
+  recipeNames <- webpage %>% html_nodes(".gz-title a") %>% html_text()
+  pageIT <- vector(mode="list", length=length(recipeNames))
+  pageIT[] <- as.list(recipeNames)
+  names(pageIT) <- recipeLinks  
+  return(pageIT)
+}
+
 getIngredients <- function(link) {
   webpage <- read_html(link)
   ingredients <- webpage %>% html_nodes('div.ingredienten>p') %>% html_text()

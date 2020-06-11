@@ -21,36 +21,49 @@ for (i in seq(101, 350)) {
 pagesIT <- unlist(pageIT)
 # The total number of recipes is: 5095, which is almost same as the Dutch count
 length(pagesIT)
-saveRDS(pagesIT, 'ITRecipeAndURLs.rds')
+# saveRDS(pagesIT, 'ITRecipeAndURLs.rds')
+pagesIT <- readRDS('ITRecipeAndURLs.rds')
 
 ## Ingredients of the recipes from these pages
-# There are 350779 recipes, fetching all of them with my current resources is not
-# possible. But I do have ingredients from 5025 recipes (1.44% of total)
-# percentage wise this is not huge, but is statistically significant 
-# at 95% conf level and margin of error = 1.3% (https://www.surveymonkey.com/mp/sample-size-calculator/)
-
+# Same as for NL, processing is done for ~ 5k (5095) recipes 
 
 # Below code gets the ingredients mentioned in a recipe URL
-# This is has been run already thus is toggled to off = 0
-getIngredientsPerPage <- function(toggle) {
-  if(toggle == 0) {
-    # This is just created to stop the fetching
-    return(NA)
-  } else { 
-    # This is the real fetching part, when toggle != 0
-    c <- 0
-    for (p in pages[1:10]) {
-      # doing so, creates a named list per URL, which is quite useful
-      ingredients[p] <- sapply(p, getIngredientsAndErrors)
-      c <- c + 1
-      print(c)
-      saveRDS(ingredients, 'ingredients.rds')
-    }
-  }
-  # c ## return(c) is implied here, but not needed so commented
+# Step 1: 1-999
+
+c <- 0
+
+ITrecipeCategory <- pagesIT
+for (i in seq(1, 3)) {
+  name <- names(pagesIT[i])
+  put <- getEverythingIT(name)
+  put[[4]] <- ITrecipeCategory[name]
+  put[[5]] <- name
+  c <- c + 1
+  print(c)
 }
-# We set the toggle to zero, so as to not run the fetching
-getIngredientsPerPage(toggle=0)
+
+outlist <- list()
+outlist[[1]] <- put
+outlist[[2]] <- p
+
+outlist[[2]][3]
+
+outlist <- append(outlist,list(resultsc))
+
+
+saveRDS(ITrecipeCategory, 'ITrecipeCategory.rds')
+
+n <- c(1000, 2000, 3000, 4000)
+c <- n[1]
+for (i in n) {
+  j <- i + 999
+  for (r in recipeURLs[i:j]) {
+    # doing so, creates a named list per URL, which is quite useful
+    recipeCategory[r] <- sapply(r, getRecipeCategoryAndErrors)
+    c <- c + 1
+    print(c)
+  }  
+}
 
 # Fetching recipe categories e.g. indo, hoofdgerecht, spaans...
 recipeCategory <- list()
@@ -76,3 +89,7 @@ saveRDS(recipeCategory, 'recipeCategory.rds')
 
 
 
+# TODO:
+# https://ricette.giallozafferano.it/Besciamella.html
+# https://ricette.giallozafferano.it/Profiteroles-al-cioccolato.html
+# https://ricette.giallozafferano.it/Ravioli-cinesi-al-vapore.html

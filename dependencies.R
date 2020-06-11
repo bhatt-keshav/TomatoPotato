@@ -41,6 +41,35 @@ getIngredients <- function(link) {
   pauseFetching(2)
   return(ingredients)
 }
+# here
+
+getEverythingIT <- function(link) {
+  webpage <- read_html(link)
+  category <- webpage %>% html_nodes('.gz-breadcrumb ul') %>% html_text
+  category <- tolower(category) %>% str_replace_all(., "[\r\n\t]" , " ") %>%   str_replace_all(., '[0-9]+', "")
+  category <- paste(category, collapse = "")
+  category <- trimws(category)
+  category <- strsplit(category, "  ")
+  category <- unlist(category)
+  category <- setdiff(category, "") 
+  
+  ingredients <- webpage %>% html_nodes('.gz-ingredient a') %>% html_text()
+  ingredients <- tolower(ingredients)
+  
+  about <- webpage %>% html_nodes(".open-podcast+ p") %>% html_text()
+  about <- tolower(about)
+  
+  output <- list()
+  output[[1]] <- category
+  output[[2]] <- ingredients
+  output[[3]] <- about
+  return(output)
+}
+
+
+
+# here
+
 
 getRecipesAndErrors <- function(url) {
   recipes <- tryCatch(

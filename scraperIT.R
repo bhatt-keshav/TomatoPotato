@@ -28,82 +28,41 @@ pagesIT <- readRDS('ITRecipeAndURLs.rds')
 # Same as for NL, processing is done for ~ 5k (5095) recipes 
 
 # Below code gets the ingredients mentioned in a recipe URL
-# Step 1: 1-99
-# Step 2: 100-999
+# Manually and automated
 
-c <- 100
-# italianFood <- list()
+# italianFood <- list() # one-time initialization
 foodListNames <- c("category", "ingrds", "about", "name", "url")
-for (i in seq(100, 999)) {
+
+counter <- c(1000, 2000, 3000, 4000)
+for (c in counter) {
+  j <- c + 999
+  for (i in seq(c, j)) {
+    name <- names(pagesIT[i])
+    out <- getEverythingIT(name)
+    out[[4]] <- ITrecipeCategory[name]
+    out[[5]] <- name
+    italianFood[[i]] <- out
+    names(italianFood[[i]]) <- foodListNames
+    print(i)
+  }
+  saveRDS(italianFood, 'italianFood.rds')
+  Sys.sleep(10)
+}  
+
+for (i in seq(5000, 5095)) {
   name <- names(pagesIT[i])
   out <- getEverythingIT(name)
   out[[4]] <- ITrecipeCategory[name]
   out[[5]] <- name
   italianFood[[i]] <- out
   names(italianFood[[i]]) <- foodListNames
-  # c <- c + 1
   print(i)
 }
-
-
-for (i in seq(1, 99)) {
-  names(italianFood[[i]]) <- lnames
-  print(i)
-}
-
-
-italianFood %>% length()
-
-lvals <- italianFood[[i]]
-
-names(lvals) <- lnames
-
-
 saveRDS(italianFood, 'italianFood.rds')
-# try of rlist
 
 
-list.select(italianFood[1:10], name)
 
-
-# end try of rlist
-n <- c(1000, 2000, 3000, 4000)
-c <- n[1]
-for (i in n) {
-  j <- i + 999
-  for (r in recipeURLs[i:j]) {
-    # doing so, creates a named list per URL, which is quite useful
-    recipeCategory[r] <- sapply(r, getRecipeCategoryAndErrors)
-    c <- c + 1
-    print(c)
-  }  
-}
 
 # Fetching recipe categories e.g. indo, hoofdgerecht, spaans...
 recipeCategory <- list()
-# Step 1 1- 2000 manually
-# Step 2 2000-4999 for loop
-n <- c(2000, 3000, 4000)
-c <- n[1]
-for (i in n) {
-  j <- i + 999
-  for (r in recipeURLs[i:j]) {
-    # doing so, creates a named list per URL, which is quite useful
-    recipeCategory[r] <- sapply(r, getRecipeCategoryAndErrors)
-    c <- c + 1
-  }  
-}
 
-# Step 3 4999-5025 manually
-for (r in recipeURLs[4999:5025]) {
-  # doing so, creates a named list per URL, which is quite useful
-  recipeCategory[r] <- sapply(r, getRecipeCategoryAndErrors)
-}
-saveRDS(recipeCategory, 'recipeCategory.rds')
-
-
-
-# TODO:
-# https://ricette.giallozafferano.it/Besciamella.html
-# https://ricette.giallozafferano.it/Profiteroles-al-cioccolato.html
-# https://ricette.giallozafferano.it/Ravioli-cinesi-al-vapore.html

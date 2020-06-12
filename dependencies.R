@@ -5,6 +5,7 @@ library('SnowballC')
 library('tm')
 library('qdap')
 library('rlist')
+# library('ggplot2')
 
 ## Functions needed for script to work
 '%ni%' <- Negate('%in%')

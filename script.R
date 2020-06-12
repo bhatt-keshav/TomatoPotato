@@ -7,6 +7,9 @@ setwd('C:/TomatoPotato')
 ### Load essentials = Libraries and Functions
 source('dependencies.R')
 
+### Load objects
+recipeCategory <- readRDS('recipeCategory.rds')
+
 ### Load scraper of smulweb.nl (one time, not needed)
 # source('scraperNL.R')
 

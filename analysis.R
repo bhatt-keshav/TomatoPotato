@@ -1,5 +1,6 @@
 ### Analysis ###
 
+### NETHERLANDS ###
 ### Load data
 ## Loading the URLs of recipes fetches per page of the website (optional)
 # pages <- readRDS('recipeURLs.rds')
@@ -113,3 +114,47 @@ mealCategoryDF <- mealCategoryDF[order(mealCategoryDF$FREQ),]
 # TODO: Add y label and add plot label
 barplot(height=mealCategoryDF$FREQ, names.arg = mealCategoryDF$WORD, horiz = TRUE, xlab = 'COUNT',
         las=1, cex.names=0.7, xlim = c(0, 2000), mar = c(3,8,3,3))
+
+### ITALY ###
+# TODO: For ppt
+# https://ricette.giallozafferano.it/Besciamella.html
+# https://ricette.giallozafferano.it/Profiteroles-al-cioccolato.html
+# https://ricette.giallozafferano.it/Ravioli-cinesi-al-vapore.html
+
+recipeCategoryIT <- list.select(italianFood, category)
+recipeCategoryIT <- as.vector(unlist(recipeCategoryIT))
+recipeCategoryDFIT <- data.frame('category' = recipeCategoryIT, 'freq'=1)
+recipeCategoryDFIT <- recipeCategoryDFIT %>% group_by(category) %>% summarise(freq=sum(freq)) %>% arrange(freq)
+recipeCategoryDFIT %>% tail
+# TODO: Make%s overall
+recipeCategoryDFIT$freq <- recipeCategoryDFIT$freq*10
+recipeCategoryDFIT$freq <- recipeCategoryDFIT$freq/(max(recipeCategoryDFIT$freq))
+
+par(mar=c(4,9,1,1))
+barplot(height = recipeCategoryDFIT$freq, names.arg = recipeCategoryDFIT$category, horiz = T, 
+        las=1, cex.names=0.7, xlim = c(0,1600))
+# SO
+wrap.it <- function(x, len)
+{ 
+  sapply(x, function(y) paste(strwrap(y, len), 
+                              collapse = "\n"), 
+         USE.NAMES = FALSE)
+}
+
+
+# Call this function with a list or vector
+wrap.labels <- function(x, len)
+{
+  if (is.list(x))
+  {
+    lapply(x, wrap.it, len)
+  } else {
+    wrap.it(x, len)
+  }
+}
+
+wr.lap <- wrap.labels(recipeCategoryDFIT$category, 18); wr.lap
+
+# p <- ggplot(recipeCategoryDFIT, aes(x = category, y = freq), width = 0.7)
+# p
+# p + coord_flip()

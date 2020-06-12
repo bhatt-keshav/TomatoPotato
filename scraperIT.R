@@ -28,31 +28,45 @@ pagesIT <- readRDS('ITRecipeAndURLs.rds')
 # Same as for NL, processing is done for ~ 5k (5095) recipes 
 
 # Below code gets the ingredients mentioned in a recipe URL
-# Step 1: 1-999
+# Step 1: 1-99
+# Step 2: 100-999
 
-c <- 0
-
-ITrecipeCategory <- pagesIT
-for (i in seq(1, 3)) {
+c <- 100
+# italianFood <- list()
+foodListNames <- c("category", "ingrds", "about", "name", "url")
+for (i in seq(100, 999)) {
   name <- names(pagesIT[i])
-  put <- getEverythingIT(name)
-  put[[4]] <- ITrecipeCategory[name]
-  put[[5]] <- name
-  c <- c + 1
-  print(c)
+  out <- getEverythingIT(name)
+  out[[4]] <- ITrecipeCategory[name]
+  out[[5]] <- name
+  italianFood[[i]] <- out
+  names(italianFood[[i]]) <- foodListNames
+  # c <- c + 1
+  print(i)
 }
 
-outlist <- list()
-outlist[[1]] <- put
-outlist[[2]] <- p
 
-outlist[[2]][3]
-
-outlist <- append(outlist,list(resultsc))
+for (i in seq(1, 99)) {
+  names(italianFood[[i]]) <- lnames
+  print(i)
+}
 
 
-saveRDS(ITrecipeCategory, 'ITrecipeCategory.rds')
+italianFood %>% length()
 
+lvals <- italianFood[[i]]
+
+names(lvals) <- lnames
+
+
+saveRDS(italianFood, 'italianFood.rds')
+# try of rlist
+
+
+list.select(italianFood[1:10], name)
+
+
+# end try of rlist
 n <- c(1000, 2000, 3000, 4000)
 c <- n[1]
 for (i in n) {

@@ -4,6 +4,7 @@ library('tidyverse')
 library('SnowballC')
 library('tm')
 library('qdap')
+library('rlist')
 
 ## Functions needed for script to work
 '%ni%' <- Negate('%in%')

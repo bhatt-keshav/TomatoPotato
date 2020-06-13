@@ -1,4 +1,5 @@
 ### Analysis ###
+# TODO: Make nrs scaled (x 100 ? )rather than absolute nrs, here and overall in the script
 
 ### NETHERLANDS ###
 ### Load data
@@ -121,40 +122,26 @@ barplot(height=mealCategoryDF$FREQ, names.arg = mealCategoryDF$WORD, horiz = TRU
 # https://ricette.giallozafferano.it/Profiteroles-al-cioccolato.html
 # https://ricette.giallozafferano.it/Ravioli-cinesi-al-vapore.html
 
+## Extract category, make DF and plot
 recipeCategoryIT <- list.select(italianFood, category)
-recipeCategoryIT <- as.vector(unlist(recipeCategoryIT))
-recipeCategoryDFIT <- data.frame('category' = recipeCategoryIT, 'freq'=1)
-recipeCategoryDFIT <- recipeCategoryDFIT %>% group_by(category) %>% summarise(freq=sum(freq)) %>% arrange(freq)
-recipeCategoryDFIT %>% tail
-# TODO: Make%s overall
-recipeCategoryDFIT$freq <- recipeCategoryDFIT$freq*10
-recipeCategoryDFIT$freq <- recipeCategoryDFIT$freq/(max(recipeCategoryDFIT$freq))
+recipeCategoryDFIT <- extractListText(recipeCategoryIT, category)
 
 par(mar=c(4,9,1,1))
-barplot(height = recipeCategoryDFIT$freq, names.arg = recipeCategoryDFIT$category, horiz = T, 
-        las=1, cex.names=0.7, xlim = c(0,1600))
-# SO
-wrap.it <- function(x, len)
-{ 
-  sapply(x, function(y) paste(strwrap(y, len), 
-                              collapse = "\n"), 
-         USE.NAMES = FALSE)
-}
+barplot(height = recipeCategoryDFIT$freq, names.arg = recipeCategoryDFIT$listName, horiz = T, 
+        las=1, cex.names=0.7, xlim = c(0,100))
 
+## Extract ingredients, make DF and plot
+recipeIngrdsIT <- list.select(italianFood, ingrds)
+recipeIngrdsDFIT <- extractListText(recipeIngrdsIT, ingrds, trim = T)
 
-# Call this function with a list or vector
-wrap.labels <- function(x, len)
-{
-  if (is.list(x))
-  {
-    lapply(x, wrap.it, len)
-  } else {
-    wrap.it(x, len)
-  }
-}
+barplot(height = recipeIngrdsDFIT$freq, names.arg = recipeIngrdsDFIT$listName, horiz = T, 
+        las=1, cex.names=0.7, xlim = c(0,100))
 
-wr.lap <- wrap.labels(recipeCategoryDFIT$category, 18); wr.lap
+## Extract text, make DF and plot
+recipeAboutIT <- list.select(italianFood, about)
+recipeAboutIT <- unlist(recipeAboutIT)
+sheets <- data.frame('txt' = recipeAboutIT)
+write.xlsx2((sheets, 'sheets.excel', row.names = F)
+write_excel_csv()
 
-# p <- ggplot(recipeCategoryDFIT, aes(x = category, y = freq), width = 0.7)
-# p
-# p + coord_flip()
+library("xlsx")

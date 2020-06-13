@@ -43,7 +43,6 @@ getIngredients <- function(link) {
   pauseFetching(2)
   return(ingredients)
 }
-# here
 
 getEverythingIT <- function(link) {
   webpage <- read_html(link)
@@ -67,11 +66,6 @@ getEverythingIT <- function(link) {
   output[[3]] <- about
   return(output)
 }
-
-
-
-# here
-
 
 getRecipesAndErrors <- function(url) {
   recipes <- tryCatch(
@@ -135,4 +129,25 @@ getRecipeCategoryAndErrors <- function(url) {
 removeStopWords <- function(from_vec, stopwords) {
   setdiff(from_vec, stopwords)
 }
+
+# flattens an Italian list, that has already been extracted by name
+extractListText <- function(selectedList, listName, trim) {
+  # inputs
+  # listName: text '', listOfLists: expected = italianFood
+  selectedList <- as.vector(unlist(selectedList))
+  selectedListDF <- data.frame(listName = selectedList, 'freq'=1)
+  selectedListDF <- selectedListDF %>% group_by(listName) %>% summarise(freq=sum(freq)) %>% arrange(freq)
+  selectedListDF$freq <- (selectedListDF$freq*100)/(max(selectedListDF$freq))
+  # Trims the last last 100 rows (most popular), if TRUE
+  if (trim == TRUE) {
+    # total nr of rows
+    rown <- dim(selectedListDF)[1]
+    # if a big df, 
+    if (rown > 105) {
+      selectedListDF <- selectedListDF[(rown -100): rown, ]
+    }  
+  }
+  return(selectedListDF)
+}
+
 

@@ -58,11 +58,6 @@ for (i in seq(5000, 5095)) {
   names(italianFood[[i]]) <- foodListNames
   print(i)
 }
-saveRDS(italianFood, 'italianFood.rds')
+# saveRDS(italianFood, 'italianFood.rds')
 
-
-
-
-# Fetching recipe categories e.g. indo, hoofdgerecht, spaans...
-recipeCategory <- list()
 

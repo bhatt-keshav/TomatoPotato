@@ -9,7 +9,7 @@ source('dependencies.R')
 
 ### Load objects
 recipeCategory <- readRDS('recipeCategory.rds')
-
+italianFood <- readRDS('italianFood.rds')
 ### Load scraper of smulweb.nl (one time, not needed)
 # source('scraperNL.R')
 

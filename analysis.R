@@ -137,11 +137,62 @@ recipeIngrdsDFIT <- extractListText(recipeIngrdsIT, ingrds, trim = T)
 barplot(height = recipeIngrdsDFIT$freq, names.arg = recipeIngrdsDFIT$listName, horiz = T, 
         las=1, cex.names=0.7, xlim = c(0,100))
 
-## Extract text, make DF and plot
+## Extract about text, make DF and plot
 recipeAboutIT <- list.select(italianFood, about)
 recipeAboutIT <- unlist(recipeAboutIT)
-sheets <- data.frame('txt' = recipeAboutIT)
-write.xlsx2((sheets, 'sheets.excel', row.names = F)
-write_excel_csv()
+# one time
+# sheets <- data.frame('txt' = recipeAboutIT)
+# write.xlsx2(sheets, 'sheets.xlsx', row.names = F)
 
-library("xlsx")
+# get data translated from google sheets
+translated <- read.xlsx2('translated.xlsx', header = T, as.data.frame = T, sheetName = 'Sheet1')
+translatedAbout <- translated$trans %>% tolower() %>% str_extract_all(., '[a-z]+')
+
+# Get world country/city data
+data("world.cities")
+world.cities$name <- tolower(world.cities$name) %>% gsub("[^a-zA-Z]", " ", .)
+world.cities$country.etc <- tolower(world.cities$country.etc) %>% gsub("[^a-zA-Z]", " ", .)
+# just get country and capital city
+world <- world.cities %>% filter(capital == 1 & country.etc != 'italy') %>% select(name, country.etc ) %>% arrange(., country.etc)
+# get everything Italian
+italy <- world.cities %>% filter(country.etc == 'italy') %>% select(name, country.etc ) %>% arrange(., country.etc)
+# then append it to the world data
+world <- rbind(world, italy)
+
+# Get nationalities and join them to world df
+nationalities <- read.xlsx('nationalities.xlsx', header = T, as.data.frame = T, sheetName = 'Sheet1')
+world <- merge(world, nationalities, all = T)
+world[world$nationality == 'english', ]
+
+t <- translatedAbout[1:10] 
+t <- rm_stopwords(t, stopwords = Top200Words)
+# unlist = T, unique = TRUE
+length(t)
+
+# t[t %in% world$country.etc]
+# t[t %in% world$name]
+# t[t %in% world$nationality]
+
+t1 <- lapply(t, unique)
+
+idx <- sapply(t1, function(y) y %in% world$nationality)
+# idx1 <- sapply(idx, which)
+Map(`[`, t1, idx) #1 works
+# lapply(seq_along(t1), function(x) t1[[x]][idx1[[x]]]) #2 works
+
+
+
+1# TODO: after project
+# write.csv(world$country.etc[which(is.na(world$nationality))] %>% unique(), file = 'nat.csv', row.names = F)
+# Maybe not needed
+# get alternative names of these countries
+# altCountryNames <- read.csv('country-names-cross-ref.csv', header = F)
+# altCountryNames <- altCountryNames %>% rename(alt_name = V1, country.etc = V2)
+# altCountryNames %>% head()
+# altCountryNames <- sapply(altCountryNames, tolower)
+# joinedCountrs$name <- NULL
+# joinedCountrs <- merge(joinedCountrs, altCountryNames, by = 'country.etc', all.x = T)
+
+
+
+

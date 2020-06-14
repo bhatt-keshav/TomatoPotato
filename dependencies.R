@@ -5,6 +5,10 @@ library('SnowballC')
 library('tm')
 library('qdap')
 library('rlist')
+library("xlsx")
+library('maps')
+library('entity')
+
 # library('ggplot2')
 
 ## Functions needed for script to work

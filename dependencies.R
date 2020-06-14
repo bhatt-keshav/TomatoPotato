@@ -8,7 +8,8 @@ library('rlist')
 library("xlsx")
 library('maps')
 library('entity')
-
+# library('textstem')
+# library('koRpus')
 # library('ggplot2')
 
 ## Functions needed for script to work

@@ -164,21 +164,32 @@ nationalities <- read.xlsx('nationalities.xlsx', header = T, as.data.frame = T, 
 world <- merge(world, nationalities, all = T)
 world[world$nationality == 'english', ]
 
-t <- translatedAbout[1:10] 
-t <- rm_stopwords(t, stopwords = Top200Words)
-# unlist = T, unique = TRUE
-length(t)
+translatedAbout <- rm_stopwords(translatedAbout, stopwords = Top200Words)
 
-# t[t %in% world$country.etc]
-# t[t %in% world$name]
-# t[t %in% world$nationality]
-
-t1 <- lapply(t, unique)
-
-idx <- sapply(t1, function(y) y %in% world$nationality)
+translatedAbout <- lapply(translatedAbout, unique)
+## Categorize by nationality 
+idx <- sapply(translatedAbout, function(y) y %in% world$nationality)
 # idx1 <- sapply(idx, which)
-Map(`[`, t1, idx) #1 works
+nationalityCatsIT <- Map(`[`, translatedAbout, idx) #1 works
 # lapply(seq_along(t1), function(x) t1[[x]][idx1[[x]]]) #2 works
+
+## Categorize by Italian cities and other national capitals 
+idx <- sapply(translatedAbout, function(y) y %in% world$name)
+nameCatsIT <- Map(`[`, translatedAbout, idx) #1 works
+
+## Categorize by country names
+idx <- sapply(translatedAbout, function(y) y %in% world$country.etc)
+countryCatsIT <- Map(`[`, translatedAbout, idx) #1 works
+
+catsIT <- c(nationalityCatsIT %>% unlist(), nameCatsIT %>% unlist(), countryCatsIT %>% unlist())
+catsITDF <- data.frame('listName' = catsIT, 'freq'=1)
+catsITDF <- catsITDF %>% group_by(listName) %>% summarise(freq=sum(freq)) %>% arrange(freq)
+catsITDF$freq <- (catsITDF$freq*100)/(max(catsITDF$freq))
+
+barplot(height = catsITDF$freq, names.arg = catsITDF$listName, horiz = T, 
+        las=1, cex.names=0.7, xlim = c(0,100))
+# TODO: map city to country
+
 
 
 

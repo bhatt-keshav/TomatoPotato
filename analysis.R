@@ -162,7 +162,13 @@ world <- rbind(world, italy)
 # Get nationalities and join them to world df
 nationalities <- read.xlsx('nationalities.xlsx', header = T, as.data.frame = T, sheetName = 'Sheet1')
 world <- merge(world, nationalities, all = T)
-world[world$nationality == 'english', ]
+
+# got these from https://www.wikiwand.com/en/List_of_adjectivals_and_demonyms_for_cities
+cityDemonym <- read.xlsx('cityDemonym.xlsm',  header = T, as.data.frame = T, sheetName = 'Sheet1')
+# merge city demonyms to world df
+world <- merge(world, cityDemonym, all.x = T)  
+# remove gorgonzola to avoid confusion with cheese
+world <- world[world$name != 'gorgonzola', ] 
 
 translatedAbout <- rm_stopwords(translatedAbout, stopwords = Top200Words)
 
@@ -181,19 +187,42 @@ nameCatsIT <- Map(`[`, translatedAbout, idx) #1 works
 idx <- sapply(translatedAbout, function(y) y %in% world$country.etc)
 countryCatsIT <- Map(`[`, translatedAbout, idx) #1 works
 
-catsIT <- c(nationalityCatsIT %>% unlist(), nameCatsIT %>% unlist(), countryCatsIT %>% unlist())
+## Categorize by city demonyms 
+idx <- sapply(translatedAbout, function(y) y %in% world$demonym)
+# idx1 <- sapply(idx, which)
+demonymCatsIT <- Map(`[`, translatedAbout, idx) #1 works
+
+catsIT <- c(nationalityCatsIT %>% unlist(), nameCatsIT %>% unlist(), countryCatsIT %>% unlist(), demonymCatsIT %>% unlist())
 catsITDF <- data.frame('listName' = catsIT, 'freq'=1)
-catsITDF <- catsITDF %>% group_by(listName) %>% summarise(freq=sum(freq)) %>% arrange(freq)
+# these words shouldn't be there
+catsITDF <- catsITDF[catsITDF$listName %ni% c('parmesan', 'soul', 'penne', 'cayenne'),]
+# TODO: Dunno why not working
+# Join back the 1. city name
+catsITDF <- merge(catsITDF, world[, c('name', 'country.etc')], by.x = 'listName', by.y = 'name', all.x = T)
+dim(catsITDF)
+# 2. then city demonym
+catsITDF <- merge(catsITDF, world[, c('demonym', 'country.etc')], by.x = 'listName', by.y = 'demonym', all.x = T)
+dim(catsITDF)
+# 3. the country demonym to country from the world df
+worldUniqueNats <- world[, c('nationality', 'country.etc')] %>% distinct(., nationality , .keep_all = T)
+catsITDF <- merge(catsITDF, worldUniqueNats, by.x = 'listName', by.y = 'nationality', all.x = T)
+rm(worldUniqueNats)
+# write.xlsx(catsITDF, file = 'catsITDF.xlsx', col.names = T, row.names = F)
+# 
+# now coalesce to remove double country column with NAs
+catsITDF <- catsITDF %>% mutate(country = coalesce(country.etc.x, country.etc.y, country.etc)) %>% select(listName, freq, country)
+
+# since the country is not joined hence in the country column wherever there was a NA, it is filled by the value from the listName column
+catsITDF$country[which(is.na(catsITDF$country))] <- catsITDF$listName[which(is.na(catsITDF$country))]
+
+# Group and remove multiple entries
+catsITDF <- catsITDF %>% group_by(country) %>% summarise(freq=sum(freq)) %>% arrange(freq)
 catsITDF$freq <- (catsITDF$freq*100)/(max(catsITDF$freq))
 
-barplot(height = catsITDF$freq, names.arg = catsITDF$listName, horiz = T, 
-        las=1, cex.names=0.7, xlim = c(0,100))
-# TODO: map city to country
+barplot(height = catsITDF$freq, names.arg = catsITDF$country, horiz = T,         las=1, cex.names=0.7, xlim = c(0,100))
 
 
-
-
-1# TODO: after project
+# TODO: after project
 # write.csv(world$country.etc[which(is.na(world$nationality))] %>% unique(), file = 'nat.csv', row.names = F)
 # Maybe not needed
 # get alternative names of these countries
@@ -203,7 +232,3 @@ barplot(height = catsITDF$freq, names.arg = catsITDF$listName, horiz = T,
 # altCountryNames <- sapply(altCountryNames, tolower)
 # joinedCountrs$name <- NULL
 # joinedCountrs <- merge(joinedCountrs, altCountryNames, by = 'country.etc', all.x = T)
-
-
-
-

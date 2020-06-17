@@ -1,5 +1,4 @@
 ### Analysis ###
-# TODO: Make nrs scaled (x 100 ? )rather than absolute nrs, here and overall in the script
 
 ### NETHERLANDS ###
 ### Load data
@@ -35,23 +34,41 @@ allStopWords <- allStopWords %>% unique()
 ingredientsClean <- lapply(ingredients, removeStopWords, stopwords=allStopWords)
 
 # Total unique ingredients are 8852  
-unlist(ingredientsClean) %>% unique() %>% length()
+unlist(ingredientsClean) %>% unique() %>% length() 
 ingredientsClean <- as.vector(unlist(ingredientsClean))
 
 # Stemming and subsetting tomatoes and potatoes
 ingredientsClean[grepl("toma", ingredientsClean)] <- "tomaat"
 ingredientsClean[grepl("aardap|kriel|patat|pieper", ingredientsClean)] <- "aardappel"
+# saveRDS(ingredientsClean, "ingredientsClean.rds")
 
 # Put all in a df for plotting
 ingredientsDF <- freq_terms(ingredientsClean, top = 100) 
-# make barplot
-# TODO: Chnage y label and add plot label
-plot(ingredientsDF[3 :100, ]) # start from 3 to omit zout en peper
+# write.xlsx(ingredientsDF, file = 'ingNL.xlsx', col.names = F)
+ingredientsDF <- read.xlsx('translated.xlsx', sheetName = 'IngrdNL', as.data.frame = T, header = T)
+ingredientsDF$freq <- (ingredientsDF$freq*100)/(max(ingredientsDF$freq))
+ingredientsDF <- ingredientsDF %>% arrange(.,freq)
+# start from 3 to omit zout en peper
+ingredientsDF <- ingredientsDF[ingredientsDF$word %ni% c('salt', 'pepper'), ]
+ingredientsDF <- tail(ingredientsDF, 50)
+ingredientsDF$`listName` <- NULL
+
+# make barplot of Ingredients
+par(mar=c(4,8,2,2))
+
+COLS = rep("#eaf2f8",length(ingredientsDF$word))
+COLS[ingredientsDF$word=="tomato"] =  "#df6152"
+COLS[ingredientsDF$word=="potato"] =  "#f0ce6d"  
+COLS[ingredientsDF$word== "olive oil"] = "#708238"
+COLS[ingredientsDF$word== "butter"] = "#fdf6cf"
+COLS[ingredientsDF$word== "garlic"] = "#f2f1f1"
+
+
+with(ingredientsDF, barplot(freq, names.arg = word, horiz = T, col = COLS,    main="Tomato vs Potato in NL", xlab = 'Scaled Count',
+        las=1, cex.names=0.7, xlim = c(0,80)))
 
 ## TODO: Categorize food, spices
 ## TODO: ingredients: local, south eu, asian
-
-# saveRDS(ingredientsClean, "ingredientsClean.rds")
 
 ### Analysing recipe names
 # Get all recipe names
@@ -90,11 +107,23 @@ recipeCategoryDF <- recipeCategoryDF[!(recipeCategoryDF$WORD == ""), ]
 recipeCategoryDF$WORD <- as.factor(recipeCategoryDF$WORD)
 # order for the plot to look nice
 recipeCategoryDF <- recipeCategoryDF[order(recipeCategoryDF$FREQ),]
+# write.xlsx(recipeCategoryDF, file = "recipeCategoryDF.xlsx", row.names = F)
+# from google translate
+recipeCategoryDF <- read.xlsx('translated.xlsx', sheetName = 'catsNL', as.data.frame = T, header = T)
+recipeCategoryDF$FREQ <- (recipeCategoryDF$FREQ*100)/(max(recipeCategoryDF$FREQ))
 # make barplot
-# TODO: Add y label and add plot label
-barplot(height=recipeCategoryDF$FREQ, names.arg = recipeCategoryDF$WORD, horiz = TRUE, xlab = 'COUNT',
-        las=1, cex.names=0.7, xlim = c(0, 1100), mar = c(3,8,3,3))
+COLS = rep("#e5e7e9",length(recipeCategoryDF$WORD))
+COLS[recipeCategoryDF$WORD=="dutch"] =  "#edbb99"
+COLS[recipeCategoryDF$WORD=="italian"] = "#a9dfbf"
+COLS[recipeCategoryDF$WORD=="american"] =  "#b22234"
+COLS[recipeCategoryDF$WORD=="french"] =  "#0050a4"
+COLS[recipeCategoryDF$WORD=="international"] =  "#f67280"
 
+# 
+barplot(height=recipeCategoryDF$FREQ, names.arg = recipeCategoryDF$WORD, horiz = TRUE, main = "Origin of recipes in NL", 
+         xlab = 'Scaled Count',
+        col = COLS,
+        las=1, cex.names=0.7, xlim = c(0, 100), mar = c(3,8,3,3))
 
 # Now to see the mealtypes
 mealCategoryDF <- freq_terms(as.vector(unlist(recipeCategory)), top = 100) 
@@ -102,19 +131,29 @@ mealCategoryDF <- freq_terms(as.vector(unlist(recipeCategory)), top = 100)
 mealCategoryDF$WORD[which(mealCategoryDF$WORD %ni% mealType)] <- ""
 # combine lunch en brunch
 mealCategoryDF$WORD[which(mealCategoryDF$WORD %in% c("lunch", "brunch"))] <- "lunch-brunch"
-
 # Group to remove duplicates and sum them
 mealCategoryDF <- mealCategoryDF %>% group_by(WORD) %>% summarise(FREQ=sum(FREQ))
 # Delete the row which has empty word value
 mealCategoryDF <- mealCategoryDF[!(mealCategoryDF$WORD == ""), ] 
 # Need to make a factor for the plot to work, it doesn't like char 
-recipeCategoryDF$WORD <- as.factor(recipeCategoryDF$WORD)
+# recipeCategoryDF$WORD <- as.factor(recipeCategoryDF$WORD)
 # order for the plot to look nice
 mealCategoryDF <- mealCategoryDF[order(mealCategoryDF$FREQ),]
+mealCategoryDF$FREQ <- (mealCategoryDF$FREQ*100)/(max(mealCategoryDF$FREQ))
+# read in google translated file
+mealCategoryDF <- as.data.frame(mealCategoryDF)
+# write.xlsx(mealCategoryDF, file = "mealCategoryDF.xlsx", row.names = F)
+mealCategoryDF <- read.xlsx('translated.xlsx', sheetName = 'mealsNL', as.data.frame = T, header = T)
 # make barplot
-# TODO: Add y label and add plot label
-barplot(height=mealCategoryDF$FREQ, names.arg = mealCategoryDF$WORD, horiz = TRUE, xlab = 'COUNT',
-        las=1, cex.names=0.7, xlim = c(0, 2000), mar = c(3,8,3,3))
+COLS = rep("#94d7d5",length(mealCategoryDF$WORD))
+COLS[mealCategoryDF$WORD=="dessert"] = "#dbb688"
+COLS[mealCategoryDF$WORD=="main dish"] = "#eb7373"
+COLS[mealCategoryDF$WORD=="borrelhapjes"] = "#ffba43"
+
+par(mar=c(4,8,2,2))
+barplot(height=mealCategoryDF$FREQ, names.arg = mealCategoryDF$WORD, horiz = TRUE, xlab = 'Scaled Count', main = "Meal Categories in NL",
+        col=COLS,
+        las=1, cex.names=1, xlim = c(0, 100))
 
 ### ITALY ###
 # TODO: For ppt
@@ -122,20 +161,43 @@ barplot(height=mealCategoryDF$FREQ, names.arg = mealCategoryDF$WORD, horiz = TRU
 # https://ricette.giallozafferano.it/Profiteroles-al-cioccolato.html
 # https://ricette.giallozafferano.it/Ravioli-cinesi-al-vapore.html
 
-## Extract category, make DF and plot
+## Extract meal type, make DF and plot
 recipeCategoryIT <- list.select(italianFood, category)
-recipeCategoryDFIT <- extractListText(recipeCategoryIT, category)
+recipeCategoryDFIT <- extractListText(recipeCategoryIT, category, trim=F)
+
+# write.xlsx(as.data.frame(recipeCategoryDFIT), file = "recipeCategoryDFIT.xlsx", row.names = F)
+# from google translate
+recipeCategoryDFIT <- read.xlsx('translated.xlsx', sheetName = 'mealsIT', as.data.frame = T, header = T)
+# make barplot
+COLS = rep("#94d7d5",length(recipeCategoryDFIT$listName))
+COLS[recipeCategoryDFIT$listName=="desserts"] = "#dbb688"
+COLS[recipeCategoryDFIT$listName=="first dishes"] = "#eb7373"
+COLS[recipeCategoryDFIT$listName=="pasta"] = "#fce4b1"
 
 par(mar=c(4,9,1,1))
-barplot(height = recipeCategoryDFIT$freq, names.arg = recipeCategoryDFIT$listName, horiz = T, 
+barplot(height = recipeCategoryDFIT$freq, names.arg = recipeCategoryDFIT$listName, horiz = T, col=COLS, xlab = 'Scaled Count', main = "Meal Categories in IT",
         las=1, cex.names=0.7, xlim = c(0,100))
 
 ## Extract ingredients, make DF and plot
 recipeIngrdsIT <- list.select(italianFood, ingrds)
 recipeIngrdsDFIT <- extractListText(recipeIngrdsIT, ingrds, trim = T)
 
-barplot(height = recipeIngrdsDFIT$freq, names.arg = recipeIngrdsDFIT$listName, horiz = T, 
-        las=1, cex.names=0.7, xlim = c(0,100))
+# write.xlsx(as.data.frame(recipeIngrdsDFIT), file = "recipeIngrdsDFIT.xlsx", row.names = F)
+
+recipeIngrdsDFIT <- read.xlsx('translated.xlsx', sheetName = 'IngrdIT', as.data.frame = T, header = T)
+# to limit the size of the plot
+recipeIngrdsDFIT <- tail(recipeIngrdsDFIT, 50)
+# make barplot
+par(mar=c(4,8,2,2))
+COLS = rep("#eaf2f8",length(recipeIngrdsDFIT$listName))
+COLS[grepl("toma", recipeIngrdsDFIT$listName)] = "#df6152"
+COLS[recipeIngrdsDFIT$listName =="potatoes"] = "#f0ce6d"  
+COLS[recipeIngrdsDFIT$listName == "extra virgin olive oil"] = "#708238"
+COLS[recipeIngrdsDFIT$listName == "butter"] = "#fdf6cf"
+
+with(recipeIngrdsDFIT, barplot(freq, names.arg = listName, horiz = T, col = COLS,    main="Tomato vs Potato in IT", xlab = 'Scaled Count',
+                            las=1, cex.names=0.7, xlim = c(0,80)))
+
 
 ## Extract about text, make DF and plot
 recipeAboutIT <- list.select(italianFood, about)
@@ -208,6 +270,7 @@ worldUniqueNats <- world[, c('nationality', 'country.etc')] %>% distinct(., nati
 catsITDF <- merge(catsITDF, worldUniqueNats, by.x = 'listName', by.y = 'nationality', all.x = T)
 rm(worldUniqueNats)
 # write.xlsx(catsITDF, file = 'catsITDF.xlsx', col.names = T, row.names = F)
+catsITDF <- read.xlsx('catsITDF.xlsx', sheetName = 'Sheet1', header = T, as.data.frame = T)
 # 
 # now coalesce to remove double country column with NAs
 catsITDF <- catsITDF %>% mutate(country = coalesce(country.etc.x, country.etc.y, country.etc)) %>% select(listName, freq, country)
@@ -219,8 +282,17 @@ catsITDF$country[which(is.na(catsITDF$country))] <- catsITDF$listName[which(is.n
 catsITDF <- catsITDF %>% group_by(country) %>% summarise(freq=sum(freq)) %>% arrange(freq)
 catsITDF$freq <- (catsITDF$freq*100)/(max(catsITDF$freq))
 
-barplot(height = catsITDF$freq, names.arg = catsITDF$country, horiz = T,         las=1, cex.names=0.7, xlim = c(0,100))
+COLS = rep("#e5e7e9",length(catsITDF$country))
+COLS[catsITDF$country=="usa"] =  "#b22234"
+COLS[catsITDF$country=="france"] =  "#0050a4"
+COLS[catsITDF$country=="italy"] = "#a9dfbf"
+# 
+barplot(height = catsITDF$freq, names.arg = catsITDF$country, horiz = T,   
+        main = "Origin of recipes in IT", xlab = 'Scaled Count',
+        col = COLS,
+        las=1, cex.names=0.7, xlim = c(0,100))
 
+# saveRDS(catsITDF, file = 'catsITDF.rds')
 
 # TODO: after project
 # write.csv(world$country.etc[which(is.na(world$nationality))] %>% unique(), file = 'nat.csv', row.names = F)

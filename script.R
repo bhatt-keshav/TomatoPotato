@@ -8,9 +8,15 @@ setwd('C:/TomatoPotato')
 source('dependencies.R')
 
 ### Load objects
+# NL
+ingredients <- readRDS('ingredients.rds')
+ingredientsClean <- readRDS("ingredientsClean.rds")
 recipeCategory <- readRDS('recipeCategory.rds')
+recipeNames <- readRDS("recipeNames.rds")
+# IT
 italianFood <- readRDS('italianFood.rds')
+catsITDF <- readRDS('catsITDF.rds')
 ### Load scraper of smulweb.nl (one time, not needed)
 # source('scraperNL.R')
-# load('.Rdata')
+load('.Rdata')
 

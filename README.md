@@ -11,24 +11,24 @@ Data is scraped from a Dutch website (smulweb.nl) and an Italian website (giallo
 ### Code
 All code is written in R 
 
-1. script.R  
-   This is the **mother** script and links to **children** scripts
-  1.2. dependencies.R (all Libraries and Functions and functions for this project are loaded from here  
-  1.3. scraperNL.R and  scraperIT.R   
+1. *script.R*  
+   This is the **mother** script and links to **children** scripts  
+  1.2. *dependencies.R* (all Libraries and Functions and functions for this project are loaded from here  
+  1.3. *scraperNL.R* and  *scraperIT.R*   
    These 2 scripts don't need to be run, they fetch data from the two source websites  
-  1.4. fetchingIngredients.R  
+  1.4. *fetchingIngredients.R*  
    This is a hacky script to scrape x URLs and then wait. This had to be done because the Dutch website would close connections
-  1.5. analysis.R  
+  1.5. *analysis.R*  
    Here the majority of data cleaning, analysis and plottting is performed
-2. plots  
+2. *plots*  
    This folder contains all plots
-3. old  
+3. *old*  
    Can ignore this folder, some old/backup stuff 
-4. data  
+4. *data*  
    This folder contains two types of files. In principle, all files in this folder can be generated
 + .rds : these files are referred by the R script and contain R objects that are fetched or saved after some cleaning/analysis  
 + .csv/.xlsx/.xlsm : these are some files where an R output is manually adjusted. Because either it was quicker or automation wasn't possible  
-5. TomatoPotato.pptx  
+5. *TomatoPotato.pptx*  
 This presentation was used at the eRum2020 virtual conference
 
 

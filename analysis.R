@@ -1,15 +1,14 @@
-### Analysis ###
+#################################################################
+##            Here scraped country data is analyzed            ##
+#################################################################
 
-### NETHERLANDS ###
-### Load data
-## Loading the URLs of recipes fetches per page of the website (optional)
-# pages <- readRDS('recipeURLs.rds')
+#--------------------- NETHERLANDS ----------------------------#
+
 
 ## Loading the fetched ingredients from these pages
-# This is a list of lists and can be considered as a PCorpus (?)
-ingredients <- readRDS('ingredients.rds')
+# ingredients.rds is a list of lists and can be considered as a Corpus
 
-### Text Pre-processing
+##################### Text Pre-processing ########################
 ## Cleaning
 # Make all entries lower case, other cleaning such as removing punctuation, number or whitespace is not needed as I did that while fetching by keeping only chars
 ingredients <- lapply(ingredients, tolower)
@@ -67,10 +66,8 @@ COLS[ingredientsDF$word== "garlic"] = "#f2f1f1"
 with(ingredientsDF, barplot(freq, names.arg = word, horiz = T, col = COLS,    main="Tomato vs Potato in NL", xlab = 'Scaled Count',
         las=1, cex.names=0.7, xlim = c(0,80)))
 
-## TODO: Categorize food, spices
-## TODO: ingredients: local, south eu, asian
 
-### Analysing recipe names
+### Analysing recipe names ###
 # Get all recipe names
 recipeURLs <- names(ingredients)
 
@@ -155,18 +152,17 @@ barplot(height=mealCategoryDF$FREQ, names.arg = mealCategoryDF$WORD, horiz = TRU
         col=COLS,
         las=1, cex.names=1, xlim = c(0, 100))
 
-### ITALY ###
-# TODO: For ppt
-# https://ricette.giallozafferano.it/Besciamella.html
-# https://ricette.giallozafferano.it/Profiteroles-al-cioccolato.html
-# https://ricette.giallozafferano.it/Ravioli-cinesi-al-vapore.html
+#--------------------- ITALY ----------------------------#
 
 ## Extract meal type, make DF and plot
 recipeCategoryIT <- list.select(italianFood, category)
 recipeCategoryDFIT <- extractListText(recipeCategoryIT, category, trim=F)
 
+# These recipes need to be translated, since I don't have access to any API, I write these to an excel file, import it to google sheets and use the translate function available there. This is quite hacky, but works
+#
 # write.xlsx(as.data.frame(recipeCategoryDFIT), file = "recipeCategoryDFIT.xlsx", row.names = F)
-# from google translate
+
+# translated from google sheets
 recipeCategoryDFIT <- read.xlsx('translated.xlsx', sheetName = 'mealsIT', as.data.frame = T, header = T)
 # make barplot
 COLS = rep("#94d7d5",length(recipeCategoryDFIT$listName))
@@ -210,7 +206,11 @@ recipeAboutIT <- unlist(recipeAboutIT)
 translated <- read.xlsx2('translated.xlsx', header = T, as.data.frame = T, sheetName = 'Sheet1')
 translatedAbout <- translated$trans %>% tolower() %>% str_extract_all(., '[a-z]+')
 
-# Get world country/city data
+#------------------- Get world country/city data---------------#
+# This section finds out the origin of recipe from the descriptive text 
+# on giallozafferano. It has to be done this way, as recipe origin 
+# is not directly mentioned on their website like smulweb
+
 data("world.cities")
 world.cities$name <- tolower(world.cities$name) %>% gsub("[^a-zA-Z]", " ", .)
 world.cities$country.etc <- tolower(world.cities$country.etc) %>% gsub("[^a-zA-Z]", " ", .)
@@ -258,7 +258,6 @@ catsIT <- c(nationalityCatsIT %>% unlist(), nameCatsIT %>% unlist(), countryCats
 catsITDF <- data.frame('listName' = catsIT, 'freq'=1)
 # these words shouldn't be there
 catsITDF <- catsITDF[catsITDF$listName %ni% c('parmesan', 'soul', 'penne', 'cayenne'),]
-# TODO: Dunno why not working
 # Join back the 1. city name
 catsITDF <- merge(catsITDF, world[, c('name', 'country.etc')], by.x = 'listName', by.y = 'name', all.x = T)
 dim(catsITDF)
@@ -294,13 +293,3 @@ barplot(height = catsITDF$freq, names.arg = catsITDF$country, horiz = T,
 
 # saveRDS(catsITDF, file = 'catsITDF.rds')
 
-# TODO: after project
-# write.csv(world$country.etc[which(is.na(world$nationality))] %>% unique(), file = 'nat.csv', row.names = F)
-# Maybe not needed
-# get alternative names of these countries
-# altCountryNames <- read.csv('country-names-cross-ref.csv', header = F)
-# altCountryNames <- altCountryNames %>% rename(alt_name = V1, country.etc = V2)
-# altCountryNames %>% head()
-# altCountryNames <- sapply(altCountryNames, tolower)
-# joinedCountrs$name <- NULL
-# joinedCountrs <- merge(joinedCountrs, altCountryNames, by = 'country.etc', all.x = T)

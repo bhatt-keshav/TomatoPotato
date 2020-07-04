@@ -8,11 +8,11 @@ But to analyse all 27 EU countries is a bit of a stretch. So this project focuse
 Data is scraped from a Dutch website (smulweb.nl) and an Italian website (giallozafferano.it) and then contrasted/analysed
 
 ## Organization
-### Code
-All code is written in R 
+### Files and folders
+The root directory contains all scripts. All code is written in R. Please read description below.
 
 1. *script.R*  
-   This is the **mother** script and links to **children** scripts. Ideally you can run this script (and remove some one-time run commented code) and get same results  
+   This is the **mother** script &uarr; and links to **children** scripts &darr;. Ideally you can run this script (and remove some one-time run commented code) and get same results  
   1.2. *dependencies.R* (all Libraries and Functions and functions for this project are loaded from here  
   1.3. *scraperNL.R* and  *scraperIT.R*   
    These 2 scripts don't need to be run, they fetch data from the two source websites  

@@ -27,8 +27,8 @@ The root directory contains all scripts. All code is written in R. Please read d
    Can ignore this folder, some old/backup stuff 
 4. *data*  
    This folder contains two types of files. In principle, all files in this folder can be generated
-+ .rds : these files are referred by the R script and contain R objects that are fetched or saved after some cleaning/analysis  
-+ .csv/.xlsx/.xlsm : these are some files where an R output is manually adjusted. Because either it was quicker or automation wasn't possible  
+  + .rds : these files are referred by the R script and contain R objects that are fetched or saved after some cleaning/analysis  
+  + .csv/.xlsx/.xlsm : these are some files where an R output is manually adjusted. Because either it was quicker or automation wasn't possible  
 5. *TomatoPotato.pptx*  
 This presentation was used at the eRum2020 virtual conference
 
